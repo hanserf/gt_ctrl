@@ -1,0 +1,16 @@
+ARDUINO_VERSION=arduino-1.8.9  
+ARCHITECTURE=linux64
+
+sudo apt-get install python python-pip wget git make
+
+wget -q https://downloads.arduino.cc/${ARDUINO_VERSION}-{ARCHITECTURE}.tar.xz
+tar xfv ${ARDUINO_VERSION}-${ARCHITECTURE}.tar.xz 
+pip install pyserial
+sudo apt-get install arduino-mk
+
+
+
+
+
+
+
