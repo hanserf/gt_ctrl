@@ -1,0 +1,5 @@
+{
+    "board": "arduino:avr:uno",
+    "sketch": "gt_function_test.ino",
+    "port": "/dev/ttyACM0"
+}

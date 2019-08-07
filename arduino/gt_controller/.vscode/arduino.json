@@ -1,0 +1,5 @@
+{
+    "board": "arduino:avr:uno",
+    "sketch": "grow_controller.ino",
+    "port": "/dev/ttyACM0"
+}
