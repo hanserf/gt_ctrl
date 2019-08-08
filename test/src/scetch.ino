@@ -32,7 +32,7 @@ const int LEDRB_PWM = 3;
 const int LED_COB = 4;
 const int LEDCOB_PWM = 5;
 DateTime globalFutureEvent;
-int globalCntr = 0;
+int loopCntr = 0;
 int pwm_adjust = 0;
 
 extern String getFullTimeString(DateTime aTime);
@@ -84,42 +84,32 @@ void setup () {
 }
 
 void loop () {
+	Serial.print("RUN NUMBER :",dec(loopCntr));
     DateTime now = rtc.now(); 
     String myTD = getFullTimeString(now);
-    Serial.println("My Full time");
+    Serial.println("CURRENT DATE AND TIME : ");
     Serial.print(myTD);
     Serial.println();
     String myTime = getClockString(now);
-    Serial.println("My Clock");
+    Serial.println("TIME OF DAY :");
     Serial.print(myTime);
     Serial.println();
     //Get temperatures
+    Serial.println("REQUESTING TEMPERATURES: ");
     sensors.requestTemperatures(); // Send the command to get temperatures
     printTemperatures();
-    if( globalCntr % 2 == 0 ){
-      Serial.println("Writing LED RGB LOW, COB HIGH");
-      digitalWrite(LED_RB,LOW);  
-      digitalWrite(LED_COB,HIGH);
-    }
-    else{
-      Serial.println("Writing LED RGB HIGH, COB LOW");
-      digitalWrite(LED_RB,HIGH);
-      digitalWrite(LED_COB,LOW);
-    }
-    globalCntr++;
-
-    pwm_set(LEDRB_PWM,pwm_adjust);
-    pwm_set(LEDCOB_PWM,255-pwm_adjust);
-    if(pwm_adjust >= 255){
-      pwm_adjust = 0;
-    }
-    else{
-      pwm_adjust +=10;
-    }
-
-
+    Serial.println("Writing LED RGB HIGH, COB LOW");
+    digitalWrite(LED_RB,HIGH);
+    digitalWrite(LED_COB,LOW);
+    pwm_set(LEDRB_PWM,127);
+    pwm_set(LEDCOB_PWM,0);
+    Serial.print("Purple lights ON, 50%, White lights OFF, 0%");
     Serial.println();
     delay(10000);
+    loopCntr++;
+    if(loopCntr >= 10000){
+    	loopCntr = 0;
+    }
 }
 
 String getFullTimeString(DateTime aTime){
