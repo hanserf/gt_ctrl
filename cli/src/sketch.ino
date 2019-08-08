@@ -1,5 +1,9 @@
 #include "RTClib.h"
+#include <OneWire.h>
+#include <DallasTemperature.h>
+
 //#include "growfun.h"
+#define ONE_WIRE_BUS 7
 
 //-----------------------------------------------------------
 //                Pinout:
@@ -14,52 +18,21 @@
 //-----------------------------------------------------------
 //                Global Variables
 //-----------------------------------------------------------
+//DS18S20
+OneWire oneWire(ONE_WIRE_BUS);
+DallasTemperature sensors (&oneWire);
+int numberOfDevices;
+DeviceAddress tempDeviceAddress;
+//RTC
 RTC_PCF8523 rtc;
 char daysOfTheWeek[7][12] = {"Sunday","Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
+//Global vars
 const int LED_RB = 2;
-const int LED1_PWM = 3;
+const int LEDRB_PWM = 3;
 const int LED_COB = 4;
-const int LED2_PWM = 5;
-//const int ONEWIRE = 7;
-int globalCntr = 0;
-DateTime globalFutureEvent;
+const int LEDCOB_PWM = 5;
 
-
-String getFullTimeString(DateTime aTime){
-  String currTime;
-  currTime = String(aTime.year(), DEC) + '/';
-  currTime += String( aTime.month(), DEC) + '/';
-  currTime += String( aTime.day(), DEC) ; 
-  currTime += " (";
-  currTime += daysOfTheWeek[aTime.dayOfTheWeek()];
-  currTime +=  ") ";
-  currTime += String( aTime.hour(), DEC) + ':';
-  currTime += String( aTime.minute(), DEC ) + ':';
-  currTime += String( aTime.second() , DEC );
-  return currTime;
-}
-String getClockString( DateTime aTime){
-  String aClk;
-  aClk = String( aTime.hour(), DEC) + ':';
-  aClk += String( aTime.minute(), DEC ) + ':';
-  aClk += String( aTime.second(), DEC ); 
-  return aClk;
-}
-void setFutureEvent(DateTime aTime){
-  globalFutureEvent = aTime;
-}
-DateTime getFutureEvent(){
-  return globalFutureEvent;
-}
-
-int isFutureevent(DateTime now){
-  int rc = 0;
-  if(now >= getFutureEvent()){
-    rc = 1;
-  }
-  return rc;
-}
-
+int pwm_adjust = 0;
 
 void setup () {
   //GPIO
@@ -67,9 +40,10 @@ void setup () {
   digitalWrite(LED_RB,HIGH); //Active LOW
   pinMode(LED_COB, OUTPUT);
   digitalWrite(LED_COB,HIGH); //Active LOW
-  pinMode(LED1_PWM, OUTPUT);
-  pinMode(LED2_PWM, OUTPUT);
-  //pinMode(ONEWIRE, INPUT);
+  pinMode(LEDRB_PWM, OUTPUT);
+  pinMode(LEDCOB_PWM, OUTPUT);
+  pwm_set(LEDRB_PWM,0);
+  pwm_set(LEDCOB_PWM,0);
   //Read Time on wake;
   while (!Serial) {
     delay(1);  // for Leonardo/Micro/Zero
@@ -89,10 +63,16 @@ void setup () {
     // January 21, 2014 at 3am you would call:
     // rtc.adjust(DateTime(2019, 7, 29, 22, 01, 0));
   }
+  sensors.begin();
+  numberOfDevices = sensors.getDeviceCount();
+  Serial.print("Locating devices...");
+  Serial.print("Found ");
+  Serial.print(numberOfDevices, DEC);
+  Serial.println(" devices.");
+  printDallasDevices();
 }
 
 void loop () {
-    int toggle_ledstate = 0;
     DateTime now = rtc.now(); 
     String myTD = getFullTimeString(now);
     Serial.println("My Full time");
@@ -102,27 +82,124 @@ void loop () {
     Serial.println("My Clock");
     Serial.print(myTime);
     Serial.println();
-
-    // calculate a date which is 7 days, 12 hours and 30 seconds into the future
-    //DateTime future (now + TimeSpan(7,12,30,6));
-    
-    
+    //Get temperatures
+    sensors.requestTemperatures(); // Send the command to get temperatures
+    printTemperatures();
     if( globalCntr % 2 == 0 ){
-      Serial.println("Writing LED HIGH");
-      //digitalWrite(LED_COB,HIGH);
-      //digitalWrite(LED_RB,HIGH);
-      digitalWrite(LED1_PWM , HIGH);
-      digitalWrite(LED2_PWM , HIGH);
+      Serial.println("Writing LED RGB LOW, COB HIGH");
+      digitalWrite(LED_RB,LOW);  
+      digitalWrite(LED_COB,HIGH);
     }
     else{
-      Serial.println("Writing LED LOW");
-      //digitalWrite(LED_COB,LOW);
-      //digitalWrite(LED_RB,LOW);  
-      digitalWrite(LED1_PWM , LOW);
-      digitalWrite(LED2_PWM , LOW);
+      Serial.println("Writing LED RGB HIGH, COB LOW");
+      digitalWrite(LED_RB,HIGH);
+      digitalWrite(LED_COB,LOW);
     }
-    globalCntr;
+    globalCntr++;
+
+    pwm_set(LEDRB_PWM,pwm_adjust);
+    pwm_set(LEDCOB_PWM,255-pwm_adjust);
+    if(pwm_adjust >= 255){
+      pwm_adjust = 0;
+    }
+    else{
+      pwm_adjust +=10;
+    }
+
+
     Serial.println();
-    
-    delay(3000);
+    delay(10000);
+}
+
+String getFullTimeString(DateTime aTime){
+  String currTime;
+  currTime = String(aTime.year(), DEC) + '/';
+  currTime += String( aTime.month(), DEC) + '/';
+  currTime += String( aTime.day(), DEC) ; 
+  currTime += " (";
+  currTime += daysOfTheWeek[aTime.dayOfTheWeek()];
+  currTime +=  ") ";
+  currTime += String( aTime.hour(), DEC) + ':';
+  currTime += String( aTime.minute(), DEC ) + ':';
+  currTime += String( aTime.second() , DEC );
+  return currTime;
+}
+
+String getClockString( DateTime aTime){
+  String aClk;
+  aClk = String( aTime.hour(), DEC) + ':';
+  aClk += String( aTime.minute(), DEC ) + ':';
+  aClk += String( aTime.second(), DEC ); 
+  return aClk;
+}
+
+void setFutureEvent(DateTime aTime){
+  globalFutureEvent = aTime;
+}
+
+DateTime getFutureEvent(){
+  return globalFutureEvent;
+}
+
+int isFutureevent(DateTime now){
+  int rc = 0;
+  if(now >= getFutureEvent()){
+    rc = 1;
+  }
+  return rc;
+}
+
+void printTemperatures(){
+// Loop through each device, print out temperature data
+  for(int i=0;i<numberOfDevices; i++) {
+    // Search the wire for address
+    if(sensors.getAddress(tempDeviceAddress, i)){
+		
+		// Output the device ID
+		Serial.print("Temperature for device: ");
+		Serial.println(i,DEC);
+
+    // Print the data
+    float tempC = sensors.getTempC(tempDeviceAddress);
+    Serial.print("Temp C: ");
+    Serial.print(tempC);
+    Serial.print(" Temp F: ");
+    Serial.println(DallasTemperature::toFahrenheit(tempC)); // Converts tempC to Fahrenheit
+    } 	
+  }
+
+}
+
+void printDallasDevices(){
+  // Loop through each device, print out address
+  for(int i=0;i<numberOfDevices; i++) {
+    // Search the wire for address
+    if(sensors.getAddress(tempDeviceAddress, i)) {
+      Serial.print("Found device ");
+      Serial.print(i, DEC);
+      Serial.print(" with address: ");
+      printAddress(tempDeviceAddress);
+      Serial.println();
+		} else {
+		  Serial.print("Found ghost device at ");
+		  Serial.print(i, DEC);
+		  Serial.print(" but could not detect address. Check power and cabling");
+		}
+  }
+}
+void printAddress(DeviceAddress deviceAddress) {
+  for (uint8_t i = 0; i < 8; i++) {
+    if (deviceAddress[i] < 16) Serial.print("0");
+      Serial.print(deviceAddress[i], HEX);
+  }
+}
+
+void pwm_set(const int myPin, int value){
+  if(value >255){
+    value = 255;
+  }
+  if(value < 24 || value < 0){ //PWM DC is not allow to be less than 10% and a neg value makes no sense. 
+    value = 0;
+  }
+  analogWrite(myPin,value);
 }
