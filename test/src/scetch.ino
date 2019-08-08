@@ -27,10 +27,10 @@ DeviceAddress tempDeviceAddress;
 RTC_PCF8523 rtc;
 char daysOfTheWeek[7][12] = {"Sunday","Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
 //Global vars
-const int LED_RB = 2;
-const int LEDRB_PWM = 3;
-const int LED_COB = 4;
-const int LEDCOB_PWM = 5;
+const int LED_RB = 4;
+const int LEDRB_PWM = 5;
+const int LED_COB = 2;
+const int LEDCOB_PWM = 3;
 DateTime globalFutureEvent;
 int loopCntr = 0;
 int pwm_adjust = 0;
@@ -84,7 +84,8 @@ void setup () {
 }
 
 void loop () {
-	Serial.print("RUN NUMBER :",dec(loopCntr));
+    Serial.print("RUN NUMBER :");
+    Serial.println(loopCntr);
     DateTime now = rtc.now(); 
     String myTD = getFullTimeString(now);
     Serial.println("CURRENT DATE AND TIME : ");
@@ -99,16 +100,23 @@ void loop () {
     sensors.requestTemperatures(); // Send the command to get temperatures
     printTemperatures();
     Serial.println("Writing LED RGB HIGH, COB LOW");
-    digitalWrite(LED_RB,HIGH);
-    digitalWrite(LED_COB,LOW);
-    pwm_set(LEDRB_PWM,127);
+    digitalWrite(LED_RB,LOW);//Active low?
+    digitalWrite(LED_COB,HIGH);//YES
+    pwm_set(LEDRB_PWM,90);
     pwm_set(LEDCOB_PWM,0);
-    Serial.print("Purple lights ON, 50%, White lights OFF, 0%");
+    Serial.print("Purple lights ON, 35%, White lights ON, 0%");
+    Serial.println();
+    Serial.println();
+    Serial.println();
+    Serial.println();
+    Serial.print("#------------------------------------------#");
+    Serial.println();
+    Serial.println();
     Serial.println();
     delay(10000);
     loopCntr++;
     if(loopCntr >= 10000){
-    	loopCntr = 0;
+        loopCntr = 0;
     }
 }
 
@@ -166,7 +174,7 @@ void printTemperatures(){
     Serial.print(tempC);
     Serial.print(" Temp F: ");
     Serial.println(DallasTemperature::toFahrenheit(tempC)); // Converts tempC to Fahrenheit
-    } 	
+    }	
   }
 
 }
