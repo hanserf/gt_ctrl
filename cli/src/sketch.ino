@@ -121,7 +121,7 @@ void loop () {
       digitalWrite(LED1_PWM , LOW);
       digitalWrite(LED2_PWM , LOW);
     }
-    globalCntr++;
+    globalCntr;
     Serial.println();
     
     delay(3000);
