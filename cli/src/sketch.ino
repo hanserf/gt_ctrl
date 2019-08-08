@@ -1,7 +1,7 @@
 #include "RTClib.h"
 #include <OneWire.h>
 #include <DallasTemperature.h>
-
+#include <serfFun.h>
 //#include "growfun.h"
 #define ONE_WIRE_BUS 7
 
@@ -18,6 +18,8 @@
 //-----------------------------------------------------------
 //                Global Variables
 //-----------------------------------------------------------
+gt_environment myPlace;
+
 //DS18S20
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature sensors (&oneWire);
@@ -36,6 +38,8 @@ int pwm_adjust = 0;
 
 void setup () {
   //GPIO
+  //Init signals_t in class.
+  
   pinMode(LED_RB, OUTPUT);
   digitalWrite(LED_RB,HIGH); //Active LOW
   pinMode(LED_COB, OUTPUT);
