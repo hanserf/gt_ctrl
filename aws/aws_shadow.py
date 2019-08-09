@@ -19,12 +19,12 @@ ROOT_CA = "keys/AmazonRootCA3.pem"
 # The relative path to your private key file that 
 # &IoT; generated for this device, which you 
 # have already saved onto this device.
-PRIVATE_KEY = "keys/yourkeyid-private.pem.key"
+PRIVATE_KEY = "keys/${AWS_KEYID}-private.pem.key"
 
 # The relative path to your certificate file that 
 # &IoT; generated for this device, which you 
 # have already saved onto this device.
-CERT_FILE = "keys/yourkeyid-certificate.pem.crt.txt"
+CERT_FILE = "keys/${AWS_KEYID}-certificate.pem.crt.txt"
 
 # A programmatic shadow handler name prefix.
 SHADOW_HANDLER = "gt_monitor"
