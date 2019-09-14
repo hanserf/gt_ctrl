@@ -1,7 +1,7 @@
 #include "RTClib.h"
 #include <OneWire.h>
 #include <DallasTemperature.h>
-#include <serfFun.h>
+
 //#include "growfun.h"
 #define ONE_WIRE_BUS 7
 
@@ -18,8 +18,6 @@
 //-----------------------------------------------------------
 //                Global Variables
 //-----------------------------------------------------------
-gt_environment myPlace;
-
 //DS18S20
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature sensors (&oneWire);
@@ -29,17 +27,26 @@ DeviceAddress tempDeviceAddress;
 RTC_PCF8523 rtc;
 char daysOfTheWeek[7][12] = {"Sunday","Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
 //Global vars
-const int LED_RB = 2;
-const int LEDRB_PWM = 3;
-const int LED_COB = 4;
-const int LEDCOB_PWM = 5;
-
+const int LED_RB = 4;
+const int LEDRB_PWM = 5;
+const int LED_COB = 2;
+const int LEDCOB_PWM = 3;
+DateTime globalFutureEvent;
+int loopCntr = 0;
 int pwm_adjust = 0;
+
+extern String getFullTimeString(DateTime aTime);
+extern String getClockString( DateTime aTime);
+extern void setFutureEvent(DateTime aTime);
+extern DateTime getFutureEvent();
+extern int isFutureevent(DateTime now);
+extern void printTemperatures();
+extern void printDallasDevices();
+extern void printAddress(DeviceAddress deviceAddress);
+extern void pwm_set(const int myPin, int value);
 
 void setup () {
   //GPIO
-  //Init signals_t in class.
-  
   pinMode(LED_RB, OUTPUT);
   digitalWrite(LED_RB,HIGH); //Active LOW
   pinMode(LED_COB, OUTPUT);
@@ -77,42 +84,40 @@ void setup () {
 }
 
 void loop () {
+    Serial.print("RUN NUMBER :");
+    Serial.println(loopCntr);
     DateTime now = rtc.now(); 
     String myTD = getFullTimeString(now);
-    Serial.println("My Full time");
+    Serial.println("CURRENT DATE AND TIME : ");
     Serial.print(myTD);
     Serial.println();
     String myTime = getClockString(now);
-    Serial.println("My Clock");
+    Serial.println("TIME OF DAY :");
     Serial.print(myTime);
     Serial.println();
     //Get temperatures
+    Serial.println("REQUESTING TEMPERATURES: ");
     sensors.requestTemperatures(); // Send the command to get temperatures
     printTemperatures();
-    if( globalCntr % 2 == 0 ){
-      Serial.println("Writing LED RGB LOW, COB HIGH");
-      digitalWrite(LED_RB,LOW);  
-      digitalWrite(LED_COB,HIGH);
-    }
-    else{
-      Serial.println("Writing LED RGB HIGH, COB LOW");
-      digitalWrite(LED_RB,HIGH);
-      digitalWrite(LED_COB,LOW);
-    }
-    globalCntr++;
-
-    pwm_set(LEDRB_PWM,pwm_adjust);
-    pwm_set(LEDCOB_PWM,255-pwm_adjust);
-    if(pwm_adjust >= 255){
-      pwm_adjust = 0;
-    }
-    else{
-      pwm_adjust +=10;
-    }
-
-
+    Serial.println("Writing LED RGB HIGH, COB LOW");
+    digitalWrite(LED_RB,LOW);//Active low?
+    digitalWrite(LED_COB,HIGH);//YES
+    pwm_set(LEDRB_PWM,90);
+    pwm_set(LEDCOB_PWM,0);
+    Serial.print("Purple lights ON, 35%, White lights ON, 0%");
+    Serial.println();
+    Serial.println();
+    Serial.println();
+    Serial.println();
+    Serial.print("#------------------------------------------#");
+    Serial.println();
+    Serial.println();
     Serial.println();
     delay(10000);
+    loopCntr++;
+    if(loopCntr >= 10000){
+        loopCntr = 0;
+    }
 }
 
 String getFullTimeString(DateTime aTime){
@@ -169,7 +174,7 @@ void printTemperatures(){
     Serial.print(tempC);
     Serial.print(" Temp F: ");
     Serial.println(DallasTemperature::toFahrenheit(tempC)); // Converts tempC to Fahrenheit
-    } 	
+    }	
   }
 
 }
