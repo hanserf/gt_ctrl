@@ -1,20 +1,8 @@
 #include "RTClib.h"
 #include <OneWire.h>
 #include <DallasTemperature.h>
-
-//#include "growfun.h"
 #define ONE_WIRE_BUS 7
 
-//-----------------------------------------------------------
-//                Pinout:
-//-----------------------------------------------------------
-// D2 - Relay LED Driver 1
-// D3 - PWM LED Driver 1
-// D4 - Relay LED Driver 2
-// D5 - PWM LED Driver 2
-// D7 - One Wire DS18S20 - 2 stk ADDR??
-// Vin - 12V 1A - To LVL Shifter VDDB and BUFFER
-// 5V - To Relay and LVL Shifter VDDA
 //-----------------------------------------------------------
 //                Global Variables
 //-----------------------------------------------------------
@@ -31,14 +19,16 @@ const int LED_RB = 4;
 const int LEDRB_PWM = 5;
 const int LED_COB = 2;
 const int LEDCOB_PWM = 3;
-DateTime globalFutureEvent;
 int loopCntr = 0;
 int pwm_adjust = 0;
-
+DateTime now, prev_time;
+float current_indoor_temp,current_outdoor_temp;
+float prev_indoor_temp, prev_outdoor_temp;
+float temp_error,accumulated_error,rate_error,prev_error;
+float Ki,Kp,Kd;
+float pid_output;
 extern String getFullTimeString(DateTime aTime);
 extern String getClockString( DateTime aTime);
-extern void setFutureEvent(DateTime aTime);
-extern DateTime getFutureEvent();
 extern int isFutureevent(DateTime now);
 extern void printTemperatures();
 extern void printDallasDevices();
@@ -55,7 +45,8 @@ void setup () {
   pinMode(LEDCOB_PWM, OUTPUT);
   pwm_set(LEDRB_PWM,0);
   pwm_set(LEDCOB_PWM,0);
-  //Read Time on wake;
+  now = rtc.now();
+  prev_time = now; //If now is last time, it is the first time.. Right?
   while (!Serial) {
     delay(1);  // for Leonardo/Micro/Zero
   }
@@ -81,38 +72,55 @@ void setup () {
   Serial.print(numberOfDevices, DEC);
   Serial.println(" devices.");
   printDallasDevices();
+  current_indoor_temp = 0;
+  current_outdoor_temp = 0;
+  prev_indoor_temp = 0;
+  prev_outdoor_temp =0;
+  temp_error = 0;
+  accumulated_error = 0;
+  prev_error = 0;
+  Kp = 2;
+  Ki = 5;
+  Kd = 1;
 }
 
 void loop () {
-    Serial.print("RUN NUMBER :");
-    Serial.println(loopCntr);
-    DateTime now = rtc.now(); 
+    loopCntr++;
+    float setpoint = 24.0; //Ideal temperature is 24C
+    float tolerance = 3.0; // Tolerance is
+    float setpoint_max_limit = setpoint + tolerance;
+    float setpoint_min_limit = setpoint - tolerance;
+    now = rtc.now(); 
+    int elapsed_time = now.unixtime- prev_time.unixtime;
     String myTD = getFullTimeString(now);
-    Serial.println("CURRENT DATE AND TIME : ");
+    Serial.print("Run:"+ String(loopCntr));
+    Serial.println();
     Serial.print(myTD);
     Serial.println();
-    String myTime = getClockString(now);
-    Serial.println("TIME OF DAY :");
-    Serial.print(myTime);
-    Serial.println();
-    //Get temperatures
-    Serial.println("REQUESTING TEMPERATURES: ");
-    sensors.requestTemperatures(); // Send the command to get temperatures
-    printTemperatures();
-    Serial.println("Writing LED RGB HIGH, COB LOW");
+    for(int i=0;i<numberOfDevices; i++) {
+    int indoor_temp_sensor = 0;
+    int outdoor_temp_sensor = 1;
+    sensors.getAddress(tempDeviceAddress, indoor_temp_sensor);
+    current_indoor_temp = sensors.getTempC(tempDeviceAddress);
+    sensors.getAddress(tempDeviceAddress, outdoor_temp_sensor);
+    current_outdoor_temp = sensors.getTempC(tempDeviceAddress);
+    Serial.print("T1: ");
+    Serial.print(current_indoor_temp);
+    Serial.print("T2: ");
+    Serial.print(current_outdoor_temp);
+    temp_error = setpoint-current_indoor_temp;
+    accumulated_error+= temp_error * elapsed_time;
+    rate_error = (temp_error-prev_error)/elapsed_time;
+    pid_output = Kp * temp_error + Ki * accumulated_error + Kd * rate_error;
     digitalWrite(LED_RB,LOW);//Active low?
     digitalWrite(LED_COB,HIGH);//YES
     pwm_set(LEDRB_PWM,90);
     pwm_set(LEDCOB_PWM,0);
     Serial.print("Purple lights ON, 35%, White lights ON, 0%");
-    Serial.println();
-    Serial.println();
-    Serial.println();
-    Serial.println();
-    Serial.print("#------------------------------------------#");
-    Serial.println();
-    Serial.println();
-    Serial.println();
+    //Store the timestamp of this run for the next run
+    prev_time = now;
+    prev_error = temp_error;
+
     delay(10000);
     loopCntr++;
     if(loopCntr >= 10000){
@@ -142,13 +150,6 @@ String getClockString( DateTime aTime){
   return aClk;
 }
 
-void setFutureEvent(DateTime aTime){
-  globalFutureEvent = aTime;
-}
-
-DateTime getFutureEvent(){
-  return globalFutureEvent;
-}
 
 int isFutureevent(DateTime now){
   int rc = 0;
@@ -157,6 +158,7 @@ int isFutureevent(DateTime now){
   }
   return rc;
 }
+
 
 void printTemperatures(){
 // Loop through each device, print out temperature data
@@ -212,3 +214,4 @@ void pwm_set(const int myPin, int value){
   }
   analogWrite(myPin,value);
 }
+
