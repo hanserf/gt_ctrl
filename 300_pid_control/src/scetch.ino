@@ -161,7 +161,7 @@ void loop()
   Serial_Message +=( "PWM_control = " + integer_to_String(pwm_control) + "\r\n");
   int pwm_percent = map(pwm_control,0, 255, 0, 100);
   Serial_Message +=( "Percentage = " + integer_to_String(pwm_percent) + "of 100 \r\n");
-  float power_consumption = map(pwm_percent(0,100,0.0,120));
+  float power_consumption = map(pwm_percent,0,100,0.0,120));
   Serial_Message +=( "Power Consumption = " + integer_to_String(power_consumption) + "[w] \r\n");
   //float pwm_val = 100.0*(float(pwm_control)/255.0);
   /*
