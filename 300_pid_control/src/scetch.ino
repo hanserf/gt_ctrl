@@ -93,7 +93,7 @@ void loop()
   now = rtc.now();
   String myTD = getFullTimeString(now);
   String Serial_Message = "";
-  Serial_Message += ("Run: " + String(loopCntr) + '\n');
+  Serial_Message += ("Run: " + integer_to_String(loopCntr) + '\n');
   Serial_Message += (myTD + '\n');
   /*
       Get sensor temperatures
@@ -102,8 +102,8 @@ void loop()
   sensor_indoor_temp = sensors.getTempC(tempDeviceAddress);
   sensors.getAddress(tempDeviceAddress, outdoor_temp_sensor);
   sensor_outdoor_temp = sensors.getTempC(tempDeviceAddress);
-  Serial_Message += ('T_indoor = ' + float_to_String(sensor_indoor_temp) + '\n');
-  Serial_Message += ('T_outdoor = ' + float_to_String(sensor_outdoor_temp) + '\n');
+  Serial_Message += ("T_indoor = " + float_to_String(sensor_indoor_temp) + '\n');
+  Serial_Message += ("T_outdoor = " + float_to_String(sensor_outdoor_temp) + '\n');
   /*
       PID Algoritm
     */
@@ -125,21 +125,21 @@ void loop()
   /*
       PID MESSAGE
     */
-  Serial_Message += ('T_err = ' + float_to_String(gap) + '\n');
-  Serial_Message += ('PID_output = ' + float_to_String(pid_output) + '\n');
+  Serial_Message += ("T_err = " + float_to_String(gap) + '\n');
+  Serial_Message += ("PID_output = " + float_to_String(pid_output) + '\n');
   if (pid_mode_aggressive)
   {
     Serial_Message += ('PID_mode = AGGRESSIVE' + '\n');
-    Serial_Message += ('Kd = ' + float_to_String(pid_aggKd) + ' , ');
-    Serial_Message += ('Ki = ' + float_to_String(pid_aggKi) + ' , ');
-    Serial_Message += ('Kp = ' + float_to_String(pid_aggKp) + '\n');
+    Serial_Message += ("Kd = " + float_to_String(pid_aggKd) + " , ");
+    Serial_Message += ("Ki = " + float_to_String(pid_aggKi) + " , ");
+    Serial_Message += ("Kp = " + float_to_String(pid_aggKp) + '\n');
   }
   else
   {
-    Serial_Message += ('PID_mode = CONSERVATICE' + '\n');
-    Serial_Message += ('Kd = ' + float_to_String(pid_consKd) + ' , ');
-    Serial_Message += ('Ki = ' + float_to_String(pid_consKi) + ' , ');
-    Serial_Message += ('Kp = ' + float_to_String(pid_consKp) + '\n');
+    Serial_Message += ("PID_mode = CONSERVATICE" + '\n');
+    Serial_Message += ("Kd = " + float_to_String(pid_consKd) + " , ");
+    Serial_Message += ("Ki = " + float_to_String(pid_consKi) + " , ");
+    Serial_Message += ("Kp = " + float_to_String(pid_consKp) + '\n');
   }
 
   digitalWrite(LED_RB, LOW);  //Active low?
@@ -148,7 +148,7 @@ void loop()
   pwm_set(LEDCOB_PWM, 140);
   Serial_Message += ("Purple lights ON, 60%, White lights ON, 60%" + '\n');
 
-  if (loopCntr % 10)
+  if (loopCntr % 10 == 0)
   {
     Serial.print(Serial_Message);
   }
