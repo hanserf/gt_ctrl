@@ -25,13 +25,13 @@ const int LEDRB_PWM = 5;
 const int LED_COB = 2;
 const int LEDCOB_PWM = 3;
 int loopCntr = 0;
-int pwm_adjust = 0;
+int pwm_control = 0;
 //PID
 double pid_input, pid_output, pid_setpoint;
 //Aggressive regulation when far away from setpoint.
-double pid_aggKi = 4, pid_aggKp = 0.2, pid_aggKd = 1;
+double pid_aggKi = 8, pid_aggKp = 0.8, pid_aggKd = 2;
 //Presice regulation near setpoint.
-double pid_consKi = 1, pid_consKp = 0.05, pid_consKd = 0.25;
+double pid_consKi = 2, pid_consKp = 0.2, pid_consKd = 0.5;
 PID myPID(&pid_input, &pid_output, &pid_setpoint, pid_consKp, pid_consKi, pid_consKd, DIRECT);
 
 extern String getFullTimeString(DateTime aTime);
@@ -46,14 +46,15 @@ extern String integer_to_String(int val);
 void setup()
 {
   //GPIO
+  pwm_control = 0;
   pinMode(LED_RB, OUTPUT);
   digitalWrite(LED_RB, HIGH); //Active LOW
   pinMode(LED_COB, OUTPUT);
   digitalWrite(LED_COB, HIGH); //Active LOW
   pinMode(LEDRB_PWM, OUTPUT);
   pinMode(LEDCOB_PWM, OUTPUT);
-  pwm_set(LEDRB_PWM, 0);
-  pwm_set(LEDCOB_PWM, 0);
+  pwm_set(LEDRB_PWM, pwm_control);
+  pwm_set(LEDCOB_PWM, pwm_control);
   while (!Serial)
   {
     delay(1); // for Leonardo/Micro/Zero
@@ -84,6 +85,7 @@ void setup()
   pid_setpoint = 22.0; //Deg centigradess
   pid_input = double(sensor_indoor_temp);
   myPID.SetMode(AUTOMATIC);
+  myPID.SetOutputLimits(0.0, 255.0);
 }
 
 void loop()
@@ -109,7 +111,7 @@ void loop()
   pid_input = double(sensor_indoor_temp);
   double gap = abs(pid_setpoint - pid_input); //distance away from setpoint
   bool pid_mode_aggressive;
-  if (gap < 2.0)
+  if (gap < 1.5)
   { //we're close to setpoint, use conservative tuning parameters
     myPID.SetTunings(pid_consKp, pid_consKi, pid_consKd);
     pid_mode_aggressive = false;
@@ -143,23 +145,31 @@ void loop()
   /*
     PWM Control
     */
-
-  digitalWrite(LED_RB, LOW);  //Active low?
-  digitalWrite(LED_COB, LOW); //YES
-  pwm_set(LEDRB_PWM, 140);
-  pwm_set(LEDCOB_PWM, 140);
+  pwm_control = int(pid_output);
+  if(pwm_control> 25){ //NEEDS TO BE EXTENDED TO CHECK FOR TIME
+    digitalWrite(LED_RB, LOW);  //Active low?
+    digitalWrite(LED_COB, LOW); //YES
+  }
+  else
+  {
+    digitalWrite(LED_RB, HIGH);  //TURN OFF?
+    digitalWrite(LED_COB, HIGH); 
+  }
+  pwm_set(LEDRB_PWM, pwm_control);
+  pwm_set(LEDCOB_PWM, pwm_control);
+  float pwm_val = 100.0*(pwm_control/255);
   /*
     Print out text accumulated through run
     */
-  Serial.print(Serial_Message);
-  Serial.println("Purple lights ON, 60%, White lights ON, 60%");
-
-  loopCntr++;
+  Serial_Message +=("PWM_control = " + float_to_String(pwm_val),"\r\n");
+  if(loopCntr%2==0){
+    Serial.print(Serial_Message);
+  }
   if (loopCntr >= 10000)
   {
     loopCntr = 0;
   }
-  delay(10000);
+  delay(5000);
 }
 
 String getFullTimeString(DateTime aTime)
