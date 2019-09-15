@@ -43,7 +43,6 @@ extern void pwm_set(const int myPin, int value);
 extern String float_to_String(float val);
 extern String integer_to_String(int val);
 
-
 void setup()
 {
   //GPIO
@@ -88,13 +87,13 @@ void setup()
 }
 
 void loop()
-{ 
+{
   loopCntr++;
   now = rtc.now();
   String myTD = getFullTimeString(now);
   String Serial_Message = "";
-  Serial_Message += ("Run: " + integer_to_String(loopCntr) + '\n');
-  Serial_Message += (myTD + '\n');
+  Serial_Message += ("Run: " + integer_to_String(loopCntr) + "\r\n");
+  Serial_Message += (myTD + "\r\n");
   /*
       Get sensor temperatures
     */
@@ -102,8 +101,8 @@ void loop()
   sensor_indoor_temp = sensors.getTempC(tempDeviceAddress);
   sensors.getAddress(tempDeviceAddress, outdoor_temp_sensor);
   sensor_outdoor_temp = sensors.getTempC(tempDeviceAddress);
-  Serial_Message += ("T_indoor = " + float_to_String(sensor_indoor_temp) + '\n');
-  Serial_Message += ("T_outdoor = " + float_to_String(sensor_outdoor_temp) + '\n');
+  Serial_Message += ("T_indoor = " + float_to_String(sensor_indoor_temp) + "\r\n");
+  Serial_Message += ("T_outdoor = " + float_to_String(sensor_outdoor_temp) + "\r\n");
   /*
       PID Algoritm
     */
@@ -125,30 +124,36 @@ void loop()
   /*
       PID MESSAGE
     */
-  Serial_Message += ("T_err = " + float_to_String(gap) + '\n');
-  Serial_Message += ("PID_output = " + float_to_String(pid_output) + '\n');
+  Serial_Message += ("T_err = " + float_to_String(gap) + "\r\n");
+  Serial_Message += ("PID_output = " + float_to_String(pid_output) + "\r\n");
   if (pid_mode_aggressive)
   {
     Serial_Message += ('PID_mode = AGGRESSIVE' + '\n');
     Serial_Message += ("Kd = " + float_to_String(pid_aggKd) + " , ");
     Serial_Message += ("Ki = " + float_to_String(pid_aggKi) + " , ");
-    Serial_Message += ("Kp = " + float_to_String(pid_aggKp) + '\n');
+    Serial_Message += ("Kp = " + float_to_String(pid_aggKp) + "\r\n");
   }
   else
   {
     Serial_Message += ("PID_mode = CONSERVATICE" + '\n');
     Serial_Message += ("Kd = " + float_to_String(pid_consKd) + " , ");
     Serial_Message += ("Ki = " + float_to_String(pid_consKi) + " , ");
-    Serial_Message += ("Kp = " + float_to_String(pid_consKp) + '\n');
+    Serial_Message += ("Kp = " + float_to_String(pid_consKp) + "\r\n");
   }
+  /*
+    PWM Control
+    */
 
   digitalWrite(LED_RB, LOW);  //Active low?
   digitalWrite(LED_COB, LOW); //YES
   pwm_set(LEDRB_PWM, 140);
   pwm_set(LEDCOB_PWM, 140);
-  Serial_Message += ("Purple lights ON, 60%, White lights ON, 60%" + '\n');
-
+  /*
+    Print out text accumulated through run
+    */
   Serial.print(Serial_Message);
+  Serial.println("Purple lights ON, 60%, White lights ON, 60%");
+
   loopCntr++;
   if (loopCntr >= 10000)
   {
@@ -180,7 +185,6 @@ String getClockString(DateTime aTime)
   aClk += String(aTime.second(), DEC);
   return aClk;
 }
-
 
 void printTemperatures()
 {
@@ -249,20 +253,21 @@ void pwm_set(const int myPin, int value)
   }
   analogWrite(myPin, value);
 }
-String float_to_String(float val){
+String float_to_String(float val)
+{
   int buffersize = 10;
   char float2Stringbuffer[buffersize];
   String valueString = "";
-  dtostrf(val, 4, 6, float2Stringbuffer);  //4 is mininum width, 6 is precision
+  dtostrf(val, 4, 6, float2Stringbuffer); //4 is mininum width, 6 is precision
   valueString += float2Stringbuffer;
   return valueString;
 }
-String integer_to_String(int val){
+String integer_to_String(int val)
+{
   int buffersize = 10;
   char integer2Stringbuffer[buffersize];
   String valueString = "";
-  itoa(val,integer2Stringbuffer,10);  //Radix is 10
+  itoa(val, integer2Stringbuffer, 10); //Radix is 10
   valueString += integer2Stringbuffer;
   return valueString;
 }
-
