@@ -46,6 +46,7 @@ extern String integer_to_String(int val);
 void setup()
 {
   //GPIO
+  sensors.requestTemperatures();
   pwm_control = 0;
   pinMode(LED_RB, OUTPUT);
   digitalWrite(LED_RB, HIGH); //Active LOW
