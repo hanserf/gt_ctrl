@@ -157,11 +157,11 @@ void loop()
   }
   pwm_set(LEDRB_PWM, pwm_control);
   pwm_set(LEDCOB_PWM, pwm_control);
-  float pwm_val = 100.0*(pwm_control/255);
+  float pwm_val = 100.0*(float(pwm_control)/255.0);
   /*
     Print out text accumulated through run
     */
-  Serial_Message +=("PWM_control = " + float_to_String(pwm_val),"\r\n");
+  Serial_Message +=( "PWM_control = " + float_to_String(pwm_val) + "\r\n");
   if(loopCntr%2==0){
     Serial.print(Serial_Message);
   }
