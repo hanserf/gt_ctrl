@@ -85,7 +85,7 @@ void setup()
   pid_setpoint = 22.0; //Deg centigradess
   pid_input = double(sensor_indoor_temp);
   myPID.SetMode(AUTOMATIC);
-  myPID.SetOutputLimits(0.0, 255.0);
+  myPID.SetOutputLimits(0.0, 99.9);
 }
 
 void loop()
@@ -130,14 +130,14 @@ void loop()
   Serial_Message += ("PID_output = " + float_to_String(pid_output) + "\r\n");
   if (pid_mode_aggressive)
   {
-    Serial_Message += ("PID_mode = AGGRESSIVE" + "\r\n");
+    Serial_Message += ("PID_mode = AGGRESSIVE \r\n");
     Serial_Message += ("Kd = " + float_to_String(pid_aggKd) + " , ");
     Serial_Message += ("Ki = " + float_to_String(pid_aggKi) + " , ");
     Serial_Message += ("Kp = " + float_to_String(pid_aggKp) + "\r\n");
   }
   else
   {
-    Serial_Message += ("PID_mode = CONSERVATICE" + '\n');
+    Serial_Message += ("PID_mode = CONSERVATICE \r\n");
     Serial_Message += ("Kd = " + float_to_String(pid_consKd) + " , ");
     Serial_Message += ("Ki = " + float_to_String(pid_consKi) + " , ");
     Serial_Message += ("Kp = " + float_to_String(pid_consKp) + "\r\n");
@@ -145,7 +145,8 @@ void loop()
   /*
     PWM Control
     */
-  pwm_control = int(pid_output);
+  float mapped_pwm = map(pid_output, 0.0, 100.0, 0, 255);
+  pwm_control = int(mapped_pwm);
   if(pwm_control> 25){ //NEEDS TO BE EXTENDED TO CHECK FOR TIME
     digitalWrite(LED_RB, LOW);  //Active low?
     digitalWrite(LED_COB, LOW); //YES
