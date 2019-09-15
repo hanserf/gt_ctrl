@@ -130,7 +130,7 @@ void loop()
   Serial_Message += ("PID_output = " + float_to_String(pid_output) + "\r\n");
   if (pid_mode_aggressive)
   {
-    Serial_Message += ('PID_mode = AGGRESSIVE' + '\n');
+    Serial_Message += ("PID_mode = AGGRESSIVE" + "\r\n");
     Serial_Message += ("Kd = " + float_to_String(pid_aggKd) + " , ");
     Serial_Message += ("Ki = " + float_to_String(pid_aggKi) + " , ");
     Serial_Message += ("Kp = " + float_to_String(pid_aggKp) + "\r\n");
@@ -157,11 +157,11 @@ void loop()
   }
   pwm_set(LEDRB_PWM, pwm_control);
   pwm_set(LEDCOB_PWM, pwm_control);
-  float pwm_val = 100.0*(float(pwm_control)/255.0);
+  //float pwm_val = 100.0*(float(pwm_control)/255.0);
   /*
     Print out text accumulated through run
     */
-  Serial_Message +=( "PWM_control = " + float_to_String(pwm_val) + "\r\n");
+  Serial_Message +=( "PWM_control = " + integer_to_String(pwm_control) + "\r\n");
   if(loopCntr%2==0){
     Serial.print(Serial_Message);
   }
