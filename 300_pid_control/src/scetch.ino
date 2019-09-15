@@ -2,6 +2,7 @@
 #include <OneWire.h>
 #include <DallasTemperature.h>
 #include <PID_v1.h>
+#include <stdlib.h>
 #define ONE_WIRE_BUS 7
 
 //-----------------------------------------------------------
@@ -35,11 +36,13 @@ PID myPID(&pid_input, &pid_output, &pid_setpoint, pid_consKp, pid_consKi, pid_co
 
 extern String getFullTimeString(DateTime aTime);
 extern String getClockString(DateTime aTime);
-extern int isFutureevent(DateTime now);
 extern void printTemperatures();
 extern void printDallasDevices();
 extern void printAddress(DeviceAddress deviceAddress);
 extern void pwm_set(const int myPin, int value);
+extern String float_to_String(float val);
+extern String integer_to_String(int val);
+
 
 void setup()
 {
@@ -85,13 +88,12 @@ void setup()
 }
 
 void loop()
-{
-
+{ 
   loopCntr++;
   now = rtc.now();
   String myTD = getFullTimeString(now);
-  String Serial_Message;
-  Serial_Message = "Run: " + String(loopCntr) + '\n';
+  String Serial_Message = "";
+  Serial_Message += ("Run: " + String(loopCntr) + '\n');
   Serial_Message += (myTD + '\n');
   /*
       Get sensor temperatures
@@ -100,8 +102,8 @@ void loop()
   sensor_indoor_temp = sensors.getTempC(tempDeviceAddress);
   sensors.getAddress(tempDeviceAddress, outdoor_temp_sensor);
   sensor_outdoor_temp = sensors.getTempC(tempDeviceAddress);
-  Serial_Message += ('T_indoor = ' + String(sensor_indoor_temp) + '\n');
-  Serial_Message += ('T_outdoor = ' + String(sensor_outdoor_temp) + '\n');
+  Serial_Message += ('T_indoor = ' + float_to_String(sensor_indoor_temp) + '\n');
+  Serial_Message += ('T_outdoor = ' + float_to_String(sensor_outdoor_temp) + '\n');
   /*
       PID Algoritm
     */
@@ -123,21 +125,21 @@ void loop()
   /*
       PID MESSAGE
     */
-  Serial_Message += ('T_err = ' + String(gap) + '\n');
-  Serial_Message += ('PID_output = ' + String(pid_output) + '\n');
+  Serial_Message += ('T_err = ' + float_to_String(gap) + '\n');
+  Serial_Message += ('PID_output = ' + float_to_String(pid_output) + '\n');
   if (pid_mode_aggressive)
   {
     Serial_Message += ('PID_mode = AGGRESSIVE' + '\n');
-    Serial_Message += ('Kd = ' + String(pid_aggKd) + ' , ');
-    Serial_Message += ('Ki = ' + String(pid_aggKi) + ' , ');
-    Serial_Message += ('Kp = ' + String(pid_aggKp) + '\n');
+    Serial_Message += ('Kd = ' + float_to_String(pid_aggKd) + ' , ');
+    Serial_Message += ('Ki = ' + float_to_String(pid_aggKi) + ' , ');
+    Serial_Message += ('Kp = ' + float_to_String(pid_aggKp) + '\n');
   }
   else
   {
     Serial_Message += ('PID_mode = CONSERVATICE' + '\n');
-    Serial_Message += ('Kd = ' + String(pid_consKd) + ' , ');
-    Serial_Message += ('Ki = ' + String(pid_consKi) + ' , ');
-    Serial_Message += ('Kp = ' + String(pid_consKp) + '\n');
+    Serial_Message += ('Kd = ' + float_to_String(pid_consKd) + ' , ');
+    Serial_Message += ('Ki = ' + float_to_String(pid_consKi) + ' , ');
+    Serial_Message += ('Kp = ' + float_to_String(pid_consKp) + '\n');
   }
 
   digitalWrite(LED_RB, LOW);  //Active low?
@@ -182,15 +184,6 @@ String getClockString(DateTime aTime)
   return aClk;
 }
 
-int isFutureevent(DateTime now)
-{
-  int rc = 0;
-  if (now >= getFutureEvent())
-  {
-    rc = 1;
-  }
-  return rc;
-}
 
 void printTemperatures()
 {
@@ -259,3 +252,20 @@ void pwm_set(const int myPin, int value)
   }
   analogWrite(myPin, value);
 }
+String float_to_String(float val){
+  int buffersize = 10;
+  char float2Stringbuffer[buffersize];
+  String valueString = "";
+  dtostrf(val, 4, 6, float2Stringbuffer);  //4 is mininum width, 6 is precision
+  valueString += float2Stringbuffer;
+  return valueString;
+}
+String integer_to_String(int val){
+  int buffersize = 10;
+  char integer2Stringbuffer[buffersize];
+  String valueString = "";
+  itoa(val,integer2Stringbuffer,10);  //Radix is 10
+  valueString += integer2Stringbuffer;
+  return valueString;
+}
+
