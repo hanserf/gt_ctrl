@@ -148,16 +148,13 @@ void loop()
   pwm_set(LEDCOB_PWM, 140);
   Serial_Message += ("Purple lights ON, 60%, White lights ON, 60%" + '\n');
 
-  if (loopCntr % 10 == 0)
-  {
-    Serial.print(Serial_Message);
-  }
+  Serial.print(Serial_Message);
   loopCntr++;
   if (loopCntr >= 10000)
   {
     loopCntr = 0;
   }
-  delay(1000);
+  delay(10000);
 }
 
 String getFullTimeString(DateTime aTime)
