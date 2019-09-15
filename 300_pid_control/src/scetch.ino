@@ -46,7 +46,6 @@ extern String integer_to_String(int val);
 void setup()
 {
   //GPIO
-  sensors.requestTemperatures();
   pwm_control = 0;
   pinMode(LED_RB, OUTPUT);
   digitalWrite(LED_RB, HIGH); //Active LOW
@@ -82,7 +81,7 @@ void setup()
   Serial.println(" devices.");
   printDallasDevices();
   sensors.getAddress(tempDeviceAddress, indoor_temp_sensor);
-  sensor_indoor_temp = sensors.getTempC(tempDeviceAddress);
+  sensor_indoor_temp = pid_setpoint;
   pid_setpoint = 22.0; //Deg centigradess
   pid_input = double(sensor_indoor_temp);
   myPID.SetMode(AUTOMATIC);
@@ -100,6 +99,7 @@ void loop()
   /*
       Get sensor temperatures
     */
+  sensors.requestTemperatures();
   sensors.getAddress(tempDeviceAddress, indoor_temp_sensor);
   sensor_indoor_temp = sensors.getTempC(tempDeviceAddress);
   sensors.getAddress(tempDeviceAddress, outdoor_temp_sensor);
