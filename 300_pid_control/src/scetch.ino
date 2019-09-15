@@ -31,7 +31,7 @@ double pid_input, pid_output, pid_setpoint;
 //Aggressive regulation when far away from setpoint.
 double pid_aggKi = 8, pid_aggKp = 0.8, pid_aggKd = 2;
 //Presice regulation near setpoint.
-double pid_consKi = 2, pid_consKp = 0.2, pid_consKd = 0.5;
+double pid_consKi = 3, pid_consKp = 0.4, pid_consKd = 0.66;
 PID myPID(&pid_input, &pid_output, &pid_setpoint, pid_consKp, pid_consKi, pid_consKd, DIRECT);
 
 extern String getFullTimeString(DateTime aTime);
@@ -158,19 +158,19 @@ void loop()
   }
   pwm_set(LEDRB_PWM, pwm_control);
   pwm_set(LEDCOB_PWM, pwm_control);
+  Serial_Message +=( "PWM_control = " + integer_to_String(pwm_control) + "\r\n");
   //float pwm_val = 100.0*(float(pwm_control)/255.0);
   /*
     Print out text accumulated through run
     */
-  Serial_Message +=( "PWM_control = " + integer_to_String(pwm_control) + "\r\n");
-  if(loopCntr%2==0){
+  if(loopCntr%10==0){
     Serial.print(Serial_Message);
   }
   if (loopCntr >= 10000)
   {
     loopCntr = 0;
   }
-  delay(5000);
+  delay(1000);
 }
 
 String getFullTimeString(DateTime aTime)
