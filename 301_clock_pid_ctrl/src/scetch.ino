@@ -19,7 +19,7 @@ float sensor_indoor_temp, sensor_outdoor_temp;
 RTC_PCF8523 rtc;
 DateTime now;
 int ligh_state = 0;
-int on_hour = 08;
+int on_hour = 8;
 int on_minute = 0;
 int off_hour = 20;
 int off_minute = 15;
@@ -116,7 +116,7 @@ void loop()
   sensor_outdoor_temp = sensors.getTempC(tempDeviceAddress);
   Serial_Message += ("T_indoor = " + float_to_String(sensor_indoor_temp) + "\r\n");
   Serial_Message += ("T_outdoor = " + float_to_String(sensor_outdoor_temp) + "\r\n");
-  check_light_state();
+  check_light_state(now);
   if(ligh_state == 1){
     /*
         PID Algoritm
@@ -180,7 +180,7 @@ void loop()
     //float pwm_val = 100.0*(float(pwm_control)/255.0);
   }
   else {
-    Serial_Message += ("Lights are off")
+    Serial_Message += ("Lights are off");
   }
   /*
     Print out text accumulated through run
