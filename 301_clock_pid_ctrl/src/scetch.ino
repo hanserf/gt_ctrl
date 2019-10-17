@@ -22,10 +22,11 @@ int ligh_state = 0;
 int on_hour = 8;
 int on_minute = 0;
 int off_hour = 20;
-int off_minute = 15;
+int off_minute = 0;
 
 char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
 //GPIO
+int light_toggled = 0;
 const int LED_RB = 4;
 const int LEDRB_PWM = 5;
 const int LED_COB = 2;
@@ -179,20 +180,22 @@ void loop()
     Serial_Message +=( "Power Consumption = " + integer_to_String(power_consumption) + "[w] \r\n");
     //float pwm_val = 100.0*(float(pwm_control)/255.0);
   }
-  else {
+  else if(ligh_state == 0) {
     Serial_Message += ("Lights are off");
+    digitalWrite(LED_RB, HIGH);  //TURN OFF?
+    digitalWrite(LED_COB, HIGH);
   }
   /*
     Print out text accumulated through run
     */
-  if(loopCntr%10==0){
+  if(loopCntr%2==0){
     Serial.print(Serial_Message);
   }
   if (loopCntr >= 10000)
   {
     loopCntr = 0;
   }
-  delay(1000);
+  delay(10000);
 }
 
 String getFullTimeString(DateTime aTime)
@@ -328,8 +331,10 @@ extern void initial_light_state(DateTime current_time){
   int current_hour = atoi(hourbuffer);
   if(current_hour >= on_hour && current_hour <= off_hour){
     ligh_state = 1;
+    light_toggled = 1;
     }
   else{
     ligh_state = 0;
+    light_toggled = 1;
   }
 }
