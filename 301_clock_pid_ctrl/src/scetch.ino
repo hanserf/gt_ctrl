@@ -19,9 +19,9 @@ float sensor_indoor_temp, sensor_outdoor_temp;
 RTC_PCF8523 rtc;
 DateTime now;
 int ligh_state = 0;
-int on_hour = 8;
+int on_hour = 9;
 int on_minute = 0;
-int off_hour = 20;
+int off_hour = 21;
 int off_minute = 0;
 
 char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
